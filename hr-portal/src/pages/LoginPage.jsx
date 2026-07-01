@@ -47,16 +47,35 @@ function isInAppBrowser() {
 function InAppBrowserWarning() {
   if (!isInAppBrowser()) return null;
   const url = window.location.href;
+
+  function openInChrome() {
+    // deep link เปิด Chrome บน iOS/Android
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      // iOS: เปิดใน Safari ผ่าน scheme
+      window.location.href = url.replace(/^https?:\/\//, 'safari-https://');
+      // fallback ถ้า Safari scheme ไม่ work
+      setTimeout(() => { window.location.href = url; }, 500);
+    } else {
+      // Android: เปิดใน Chrome
+      window.location.href = 'intent://' + url.replace(/^https?:\/\//, '') + '#Intent;scheme=https;package=com.android.chrome;end';
+    }
+  }
+
   return (
     <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left">
       <p className="text-xs font-semibold text-amber-800 mb-1">⚠️ กรุณาเปิดใน Chrome หรือ Safari</p>
       <p className="text-[11px] text-amber-700 mb-2">
-        บราวเซอร์นี้ไม่รองรับการเข้าสู่ระบบด้วย Google กดปุ่มด้านล่างเพื่อเปิดใน Chrome
+        บราวเซอร์นี้ไม่รองรับการเข้าสู่ระบบด้วย Google
       </p>
-      <button
-        onClick={() => window.open(url, '_blank')}
-        className="w-full py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg cursor-pointer">
+      <button onClick={openInChrome}
+        className="w-full py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg cursor-pointer mb-2">
         เปิดใน Chrome / Safari
+      </button>
+      {/* fallback: copy URL */}
+      <button onClick={() => navigator.clipboard?.writeText(url).then(() => alert('คัดลอก URL แล้ว\nวางในช่อง address bar ของ Chrome หรือ Safari'))}
+        className="w-full py-1.5 bg-white border border-amber-300 text-amber-700 text-xs font-semibold rounded-lg cursor-pointer">
+        คัดลอก URL
       </button>
     </div>
   );
