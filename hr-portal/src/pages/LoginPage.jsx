@@ -30,8 +30,34 @@ export default function LoginPage({ onLogin, loading }) {
           {loading ? 'กำลังโหลด...' : 'เข้าสู่ระบบด้วย Google'}
         </button>
 
+        {/* แจ้งเตือนถ้าเปิดใน in-app browser */}
+        <InAppBrowserWarning />
+
         <p className="text-[11px] text-gray-300 mt-6">สำหรับพนักงาน Carbon Edge เท่านั้น</p>
       </div>
+    </div>
+  );
+}
+
+function isInAppBrowser() {
+  const ua = navigator.userAgent || '';
+  return /FBAN|FBAV|Instagram|Line|Twitter|MicroMessenger|TikTok|Snapchat/.test(ua);
+}
+
+function InAppBrowserWarning() {
+  if (!isInAppBrowser()) return null;
+  const url = window.location.href;
+  return (
+    <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left">
+      <p className="text-xs font-semibold text-amber-800 mb-1">⚠️ กรุณาเปิดใน Chrome หรือ Safari</p>
+      <p className="text-[11px] text-amber-700 mb-2">
+        บราวเซอร์นี้ไม่รองรับการเข้าสู่ระบบด้วย Google กดปุ่มด้านล่างเพื่อเปิดใน Chrome
+      </p>
+      <button
+        onClick={() => window.open(url, '_blank')}
+        className="w-full py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg cursor-pointer">
+        เปิดใน Chrome / Safari
+      </button>
     </div>
   );
 }
