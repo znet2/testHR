@@ -12,7 +12,7 @@ import { useAuth } from './hooks/useAuth';
 export default function App() {
   const { page, navigate } = useHistory('home');
   const [toast, setToast]  = useState({ msg: '', type: '' });
-  const { user, role, authLoading, login, logout } = useAuth();
+  const { user, role, authLoading, login, logout, handleCredentialResponse } = useAuth();
 
   const showToast = useCallback((msg, type = '') => setToast({ msg, type }), []);
 
@@ -27,7 +27,7 @@ export default function App() {
 
   // ยังไม่ login
   if (!user) {
-    return <LoginPage onLogin={login} loading={authLoading} />;
+    return <LoginPage onLogin={handleCredentialResponse} loading={authLoading} />;
   }
 
   return (
