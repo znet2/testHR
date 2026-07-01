@@ -5,6 +5,7 @@
 
 const SHEET_PERSONAL = 'ลากิจ';
 const SHEET_SICK     = 'ลาป่วย';
+const SHEET_EMP      = 'ชื่อพนักงาน';
 const FOLDER_NAME    = 'ใบรับรองแพทย์';
 
 function doPost(e) {
@@ -12,6 +13,15 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // ดึงรายชื่อพนักงาน
+  if (e.parameter && e.parameter.action === 'getEmployees') {
+    const ss    = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_EMP);
+    if (!sheet) return buildResponse(JSON.stringify({ status: 'error', message: 'Sheet not found' }));
+    const rows  = sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 1), 1).getValues();
+    const names = rows.map(r => r[0]).filter(n => n !== '');
+    return buildResponse(JSON.stringify({ status: 'ok', employees: names }));
+  }
   // Debug: ดูชื่อ sheet ทั้งหมด
   if (!e.parameter || !e.parameter.leaveType) {
     const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets().map(s => s.getName());
@@ -76,7 +86,6 @@ function handleRequest(e) {
       sheet.appendRow([
         new Date(),
         params.name      || '',
-        params.empId     || '',
         params.startDate || '',
         params.endDate   || '',
         params.reason    || '',
@@ -87,18 +96,16 @@ function handleRequest(e) {
       // ใส่ HYPERLINK สูตรในคอลัมน์สุดท้าย (ถ้ามีไฟล์)
       if (fileUrl) {
         const lastRow = sheet.getLastRow();
-        const fileCol = 9; // คอลัมน์ที่ 9
+        const fileCol = 8; // คอลัมน์ที่ 8
         sheet.getRange(lastRow, fileCol).setFormula(fileUrl);
       }
     } else {
       sheet.appendRow([
         new Date(),
         params.name      || '',
-        params.empId     || '',
         params.startDate || '',
         params.endDate   || '',
         params.reason    || '',
-        params.delegate  || '',
         leaveType,
       ]);
     }

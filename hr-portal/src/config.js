@@ -2,16 +2,16 @@ export const SHEET_CONFIG = {
   sheetId: '12k_isMFiwZ-8QwG5RfLrAwDQ77vCbCDIgkCJ41E8ZNo',
   sheets: [
     {
-      // ลากิจ
-      sheetName: 'การตอบแบบฟอร์ม 1',
+      // ลากิจ: A=timestamp, B=ชื่อ, C=วันเริ่ม, D=วันสิ้นสุด, E=เหตุผล, F=ประเภท
+      sheetName: 'ลากิจ',
       gid: '2100755242',
-      cols: { name: 1, empId: 2, startDate: 3, endDate: 4, leaveType: 7 },
+      cols: { name: 1, empId: -1, startDate: 2, endDate: 3, leaveType: 5 },
     },
     {
-      // ลาป่วย
-      sheetName: 'การตอบแบบฟอร์ม 2',
+      // ลาป่วย: A=timestamp, B=ชื่อ, C=วันเริ่ม, D=วันสิ้นสุด, E=เหตุผล, F=ใบรับรอง, G=ประเภท
+      sheetName: 'ลาป่วย',
       gid: '481045318',
-      cols: { name: 1, empId: 2, startDate: 3, endDate: 4, leaveType: 7 },
+      cols: { name: 1, empId: -1, startDate: 2, endDate: 3, leaveType: 6 },
     },
   ],
 };

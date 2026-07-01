@@ -11,8 +11,8 @@ async function fetchSheet(sheetId, sheet) {
 
   return (json.table?.rows || [])
     .map(r => ({
-      name:      r.c?.[c.name]?.v  ?? '',
-      empId:     r.c?.[c.empId]?.v ?? '',
+      name:      r.c?.[c.name]?.v      ?? '',
+      empId:     c.empId >= 0 ? (r.c?.[c.empId]?.v ?? '') : '',
       startDate: parseSheetDate(r.c?.[c.startDate]?.v),
       endDate:   parseSheetDate(r.c?.[c.endDate]?.v),
       leaveType: r.c?.[c.leaveType]?.v ?? '',

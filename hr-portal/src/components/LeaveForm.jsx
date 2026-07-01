@@ -1,7 +1,7 @@
-﻿import { useState, useRef } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { getDateOffset } from '../utils';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwFaVmCIzNKH46d5inRZHcNGCDzeCSKAeHB6RtNSSVGOKy50OzhDzAdHLPPPPMSa8hsfQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNJU9na69mTPXsCo-xAbX5fhqP6znwLgCeBdwl2EA6wiGXKwrRZJbrAO2J2FxWIR_jdA/exec';
 const MAX_FILE_MB  = 5;           // ขนาดไฟล์สูงสุดที่รับได้ (MB) — เกินกว่านี้เปิดกล้องแทน
 const IMG_MAX_PX   = 1200;        // ขนาดรูปหลังบีบ (px)
 const IMG_QUALITY  = 0.75;        // quality หลังบีบ
@@ -13,9 +13,20 @@ export default function LeaveForm({ type, onClose, onToast }) {
   const [dragOver, setDragOver] = useState(false);
   const [sizeError, setSizeError] = useState(false);
   const [hasCert, setHasCert] = useState('no');
+  const [employees, setEmployees] = useState([]);
+  const [empLoading, setEmpLoading] = useState(true);
   const fileInputRef = useRef();
 
   const isSick = type === 'sick';
+
+  // ดึงรายชื่อพนักงานตอนโหลด
+  useEffect(() => {
+    fetch(APPS_SCRIPT_URL + '?action=getEmployees', { method: 'GET', mode: 'cors' })
+      .then(r => r.json())
+      .then(data => { if (data.employees) setEmployees(data.employees); })
+      .catch(() => {})
+      .finally(() => setEmpLoading(false));
+  }, []);
 
   // บีบรูปผ่าน canvas แล้ว return base64
   function compressImage(file) {
@@ -91,7 +102,6 @@ export default function LeaveForm({ type, onClose, onToast }) {
 
     const params = new URLSearchParams();
     params.append('name',      fd.get('name')      || '');
-    params.append('empId',     fd.get('empId')     || '');
     params.append('startDate', fd.get('startDate') || '');
     params.append('endDate',   fd.get('endDate')   || '');
     params.append('reason',    fd.get('reason')    || '');
@@ -104,8 +114,6 @@ export default function LeaveForm({ type, onClose, onToast }) {
         params.append('fileType', 'image/jpeg');
         params.append('fileName', 'medical_cert.jpg');
       }
-    } else {
-      params.append('delegate', fd.get('delegate') || '');
     }
 
     setLoading(true);
@@ -142,11 +150,13 @@ export default function LeaveForm({ type, onClose, onToast }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <Label>ชื่อ-นามสกุล <Req/></Label>
-        <Input name="name" placeholder="กรอกชื่อ-นามสกุล" required />
-      </div>
-      <div>
-        <Label>รหัสพนักงาน <Req/></Label>
-        <Input name="empId" placeholder="เช่น EMP001" required />
+        <select name="name" required
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#52b788] focus:ring-2 focus:ring-[#52b788]/15 focus:bg-white transition">
+          <option value="">{empLoading ? 'กำลังโหลด...' : '-- เลือกชื่อ-นามสกุล --'}</option>
+          {employees.map(name => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -165,12 +175,7 @@ export default function LeaveForm({ type, onClose, onToast }) {
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-[#52b788] focus:ring-2 focus:ring-[#52b788]/15 focus:bg-white resize-y transition" />
       </div>
 
-      {!isSick && (
-        <div>
-          <Label>ผู้รับมอบหมายงาน</Label>
-          <Input name="delegate" placeholder="ชื่อพนักงานที่รับมอบหมาย" />
-        </div>
-      )}
+
 
       {isSick && (
         <>
