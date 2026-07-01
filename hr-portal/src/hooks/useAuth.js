@@ -13,7 +13,6 @@ async function checkRole(email) {
   }
 }
 
-// decode JWT id_token จาก Google
 function parseJwt(token) {
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -24,9 +23,19 @@ function parseJwt(token) {
 }
 
 export function useAuth() {
-  const [user, setUser]             = useState(null);
-  const [role, setRole]             = useState(null);
+  const [user, setUser]               = useState(null);
+  const [role, setRole]               = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  async function handleCredentialResponse(response) {
+    const payload = parseJwt(response.credential);
+    if (!payload) return;
+    const userObj  = { name: payload.name, email: payload.email, picture: payload.picture };
+    const userRole = await checkRole(payload.email);
+    setUser(userObj);
+    setRole(userRole);
+    localStorage.setItem('hr_user', JSON.stringify({ user: userObj, role: userRole }));
+  }
 
   useEffect(() => {
     // restore session
@@ -41,49 +50,15 @@ export function useAuth() {
       } catch { localStorage.removeItem('hr_user'); }
     }
 
-    // โหลด GSI script แล้วเปิด One Tap
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => {
-      window.google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: false,
-        ux_mode: 'popup',          // popup ปกติสำหรับ desktop
-      });
-      setAuthLoading(false);
-    };
+    script.onload = () => setAuthLoading(false);
     document.head.appendChild(script);
     return () => {
       if (document.head.contains(script)) document.head.removeChild(script);
     };
-  }, []);
-
-  async function handleCredentialResponse(response) {
-    const payload = parseJwt(response.credential);
-    if (!payload) return;
-    const userObj  = { name: payload.name, email: payload.email, picture: payload.picture };
-    const userRole = await checkRole(payload.email);
-    setUser(userObj);
-    setRole(userRole);
-    localStorage.setItem('hr_user', JSON.stringify({ user: userObj, role: userRole }));
-  }
-
-  const login = useCallback(() => {
-    if (!window.google) return;
-    // ใช้ One Tap prompt — รองรับทั้ง desktop และ mobile browser
-    window.google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // fallback: เปิด redirect flow
-        window.google.accounts.id.renderButton(
-          document.getElementById('g_signin_btn'),
-          { theme: 'outline', size: 'large', width: 280 }
-        );
-      }
-    });
   }, []);
 
   const logout = useCallback(() => {
@@ -93,5 +68,5 @@ export function useAuth() {
     localStorage.removeItem('hr_user');
   }, []);
 
-  return { user, role, authLoading, login, logout, handleCredentialResponse };
+  return { user, role, authLoading, logout, handleCredentialResponse };
 }
