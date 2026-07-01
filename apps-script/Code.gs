@@ -6,6 +6,7 @@
 const SHEET_PERSONAL = 'ลากิจ';
 const SHEET_SICK     = 'ลาป่วย';
 const SHEET_EMP      = 'ชื่อพนักงาน';
+const SHEET_HR       = 'HR';
 const FOLDER_NAME    = 'ใบรับรองแพทย์';
 
 function doPost(e) {
@@ -13,6 +14,20 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // ดึง role ของ user
+  if (e.parameter && e.parameter.action === 'getRole') {
+    const email = (e.parameter.email || '').toLowerCase().trim();
+    const ss    = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_HR);
+    if (sheet) {
+      const emails = sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 1), 1)
+        .getValues().map(r => (r[0] || '').toLowerCase().trim());
+      const role = emails.includes(email) ? 'hr' : 'employee';
+      return buildResponse(JSON.stringify({ status: 'ok', role }));
+    }
+    return buildResponse(JSON.stringify({ status: 'ok', role: 'employee' }));
+  }
+
   // ดึงรายชื่อพนักงาน
   if (e.parameter && e.parameter.action === 'getEmployees') {
     const ss    = SpreadsheetApp.getActiveSpreadsheet();
@@ -22,6 +37,7 @@ function doGet(e) {
     const names = rows.map(r => r[0]).filter(n => n !== '');
     return buildResponse(JSON.stringify({ status: 'ok', employees: names }));
   }
+
   // Debug: ดูชื่อ sheet ทั้งหมด
   if (!e.parameter || !e.parameter.leaveType) {
     const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets().map(s => s.getName());

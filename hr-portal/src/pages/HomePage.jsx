@@ -1,5 +1,5 @@
-export default function HomePage({ onNavigate }) {
-  const menus = [
+export default function HomePage({ onNavigate, role }) {
+  const allMenus = [
     {
       id: 'leave',
       icon: (
@@ -11,7 +11,7 @@ export default function HomePage({ onNavigate }) {
       ),
       title: 'ลา',
       desc: 'ยื่นคำขอลากิจ ลาป่วย และดูข้อมูลการลา',
-      items: ['ลากิจ', 'ลาป่วย', 'ปฏิทินการลา'],
+      items: role === 'hr' ? ['ลากิจ', 'ลาป่วย', 'ปฏิทินการลา'] : ['ลากิจ', 'ลาป่วย'],
       color: 'hover:border-emerald-400',
       badge: 'bg-emerald-50 text-emerald-700',
       badgeLabel: 'ระบบการลา',
@@ -48,7 +48,7 @@ export default function HomePage({ onNavigate }) {
 
       {/* Main cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {menus.map(m => (
+        {allMenus.map(m => (
           <button key={m.id} onClick={() => onNavigate(m.id)}
             className={`bg-white rounded-2xl p-8 text-left border-2 border-gray-100 shadow-sm
               ${m.color} hover:-translate-y-1 hover:shadow-xl transition-all duration-200 cursor-pointer group`}>

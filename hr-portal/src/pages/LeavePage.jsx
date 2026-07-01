@@ -42,13 +42,15 @@ const cards = [
   },
 ];
 
-export default function LeavePage({ onShowCalendar, onBack, onToast }) {
+export default function LeavePage({ onShowCalendar, onBack, onToast, role }) {
   const [modal, setModal] = useState(null);
 
   function handleCard(type) {
-    if (type === 'calendar') { onShowCalendar(); return; }
+    if (type === 'calendar') { if (onShowCalendar) onShowCalendar(); return; }
     setModal(type);
   }
+
+  const visibleCards = role === 'hr' ? cards : cards.filter(c => c.type !== 'calendar');
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-10">
@@ -61,7 +63,7 @@ export default function LeavePage({ onShowCalendar, onBack, onToast }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {cards.map(c => (
+        {visibleCards.map(c => (
           <button key={c.type} onClick={() => handleCard(c.type)}
             className="bg-white rounded-2xl p-7 text-center border border-gray-200 shadow-sm hover:border-[#52b788] hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
             <div className="flex justify-center mb-3">{c.icon}</div>

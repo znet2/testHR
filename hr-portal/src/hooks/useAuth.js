@@ -1,0 +1,70 @@
+import { useState, useEffect, useCallback } from 'react';
+
+const CLIENT_ID = '261090946062-3n4dfb32qbek1ivsgo9bfstrd3pb155b.apps.googleusercontent.com';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEqaUJ50YiHyXU4x-3JF4GfAjMpi3D79_8fHOObx9JosGQYyIFaLMkEXeQmt5RxEllcg/exec';
+
+export function useAuth() {
+  const [user, setUser]       = useState(null);   // { name, email, picture }
+  const [role, setRole]       = useState(null);   // 'hr' | 'employee'
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // โหลด Google Identity Services script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      // restore session จาก localStorage
+      const saved = localStorage.getItem('hr_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setUser(parsed.user);
+        setRole(parsed.role);
+      }
+      setAuthLoading(false);
+    };
+    document.head.appendChild(script);
+    return () => document.head.removeChild(script);
+  }, []);
+
+  // เช็ค role จาก Apps Script
+  async function checkRole(email) {
+    try {
+      const res  = await fetch(`${APPS_SCRIPT_URL}?action=getRole&email=${encodeURIComponent(email)}`);
+      const data = await res.json();
+      return data.role || 'employee';
+    } catch {
+      return 'employee';
+    }
+  }
+
+  const login = useCallback(() => {
+    if (!window.google) return;
+    window.google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: 'openid email profile',
+      callback: async (tokenResponse) => {
+        if (tokenResponse.error) return;
+        // ดึงข้อมูล user จาก Google
+        const res  = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const info = await res.json();
+        const userObj = { name: info.name, email: info.email, picture: info.picture };
+        const userRole = await checkRole(info.email);
+        setUser(userObj);
+        setRole(userRole);
+        localStorage.setItem('hr_user', JSON.stringify({ user: userObj, role: userRole }));
+      },
+    }).requestAccessToken();
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    setRole(null);
+    localStorage.removeItem('hr_user');
+  }, []);
+
+  return { user, role, authLoading, login, logout };
+}

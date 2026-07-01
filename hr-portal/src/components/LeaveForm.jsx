@@ -1,7 +1,7 @@
 ﻿import { useState, useRef, useEffect } from 'react';
 import { getDateOffset } from '../utils';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyNJU9na69mTPXsCo-xAbX5fhqP6znwLgCeBdwl2EA6wiGXKwrRZJbrAO2J2FxWIR_jdA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEqaUJ50YiHyXU4x-3JF4GfAjMpi3D79_8fHOObx9JosGQYyIFaLMkEXeQmt5RxEllcg/exec';
 const MAX_FILE_MB  = 5;           // ขนาดไฟล์สูงสุดที่รับได้ (MB) — เกินกว่านี้เปิดกล้องแทน
 const IMG_MAX_PX   = 1200;        // ขนาดรูปหลังบีบ (px)
 const IMG_QUALITY  = 0.75;        // quality หลังบีบ
