@@ -15,7 +15,9 @@ async function fetchSheet(sheetId, sheet) {
       empId:     c.empId >= 0 ? (r.c?.[c.empId]?.v ?? '') : '',
       startDate: parseSheetDate(r.c?.[c.startDate]?.v),
       endDate:   parseSheetDate(r.c?.[c.endDate]?.v),
+      reason:    c.reason >= 0 ? (r.c?.[c.reason]?.v ?? '') : '',
       leaveType: r.c?.[c.leaveType]?.v ?? '',
+      fileUrl:   c.fileUrl >= 0 ? (r.c?.[c.fileUrl]?.v ?? '') : '',
     }))
     .filter(d => d.name && d.startDate && d.endDate);
 }

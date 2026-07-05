@@ -1,48 +1,50 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Keycloak from 'keycloak-js';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEqaUJ50YiHyXU4x-3JF4GfAjMpi3D79_8fHOObx9JosGQYyIFaLMkEXeQmt5RxEllcg/exec';
-
-async function checkRole(email) {
-  try {
-    const res  = await fetch(`${APPS_SCRIPT_URL}?action=getRole&email=${encodeURIComponent(email)}`);
-    const data = await res.json();
-    return data.role || 'employee';
-  } catch {
-    return 'employee';
-  }
-}
+const kc = new Keycloak({
+  url:      'http://localhost:8080',
+  realm:    'hr-portal',
+  clientId: 'hr-portal-app',
+});
 
 export function useAuth() {
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem('hr_user');
-      return saved ? JSON.parse(saved).user : null;
-    } catch { return null; }
-  });
-  const [role, setRole] = useState(() => {
-    try {
-      const saved = localStorage.getItem('hr_user');
-      return saved ? JSON.parse(saved).role : null;
-    } catch { return null; }
-  });
+  const [user, setUser]               = useState(null);
+  const [role, setRole]               = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const initialized                   = useRef(false);
 
-  const onGoogleSuccess = useCallback(async (decoded) => {
-    try {
-      const userObj  = { name: decoded.name, email: decoded.email, picture: decoded.picture };
-      const userRole = await checkRole(decoded.email);
-      setUser(userObj);
-      setRole(userRole);
-      localStorage.setItem('hr_user', JSON.stringify({ user: userObj, role: userRole }));
-    } catch (e) {
-      console.error('Login error', e);
-    }
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
+    const hasCode = window.location.search.includes('code=') ||
+                    window.location.search.includes('session_state=');
+
+    kc.init({
+      onLoad:           hasCode ? 'login-required' : undefined,
+      checkLoginIframe: false,
+      pkceMethod:       'S256',
+      responseMode:     'query',
+    }).then(authenticated => {
+      if (authenticated) {
+        const t = kc.tokenParsed;
+        const roles = t?.realm_access?.roles || [];
+        setUser({
+          name:  t?.name || t?.preferred_username || '',
+          email: t?.email || '',
+        });
+        setRole(roles.includes('hr') ? 'hr' : 'employee');
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+      setAuthLoading(false);
+    }).catch(err => {
+      console.error('Keycloak init error', err);
+      setAuthLoading(false);
+    });
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setRole(null);
-    localStorage.removeItem('hr_user');
-  }, []);
+  const login  = () => kc.login({ redirectUri: window.location.origin + '/' });
+  const logout = () => kc.logout({ redirectUri: window.location.origin + '/' });
 
-  return { user, role, authLoading: false, onGoogleSuccess, logout };
+  return { user, role, authLoading, login, logout };
 }

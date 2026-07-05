@@ -135,17 +135,24 @@ export default function CalendarPage({ onBack }) {
             {selectedEvents.map((ev, i) => {
               const isSick = ev.leaveType === 'ลาป่วย';
               return (
-                <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-50 last:border-0">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isSick ? 'bg-amber-600' : 'bg-emerald-600'}`}/>
-                  <span className="text-sm font-semibold text-gray-800 flex-1">
-                    {ev.name} <span className="text-gray-400 font-normal text-xs">({ev.empId})</span>
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {formatDateTH(ev.startDate)}{ev.startDate?.toDateString() !== ev.endDate?.toDateString() ? ` – ${formatDateTH(ev.endDate)}` : ''}
-                  </span>
-                  <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${isSick ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                    {ev.leaveType}
-                  </span>
+                <div key={i} className="flex items-start gap-3 py-3 border-b border-gray-50 last:border-0">
+                  <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${isSick ? 'bg-amber-600' : 'bg-emerald-600'}`}/>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-gray-800">{ev.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">
+                          {formatDateTH(ev.startDate)}{ev.startDate?.toDateString() !== ev.endDate?.toDateString() ? ` – ${formatDateTH(ev.endDate)}` : ''}
+                        </span>
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${isSick ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                          {ev.leaveType}
+                        </span>
+                      </div>
+                    </div>
+                    {ev.reason && (
+                      <p className="text-xs text-gray-500 mt-1"><span className="text-gray-400">เหตุผล:</span> {ev.reason}</p>
+                    )}
+                  </div>
                 </div>
               );
             })}

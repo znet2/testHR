@@ -14,6 +14,74 @@ function doPost(e) {
 }
 
 function doGet(e) {
+  // ดึงรายการคำขอลาทั้งหมด (สำหรับ HR)
+  if (e.parameter && e.parameter.action === 'getLeaveRequests') {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const results = [];
+
+    // ลากิจ: col A=timestamp,B=name,C=start,D=end,E=reason,F=type,G=status
+    const sheetP = ss.getSheetByName(SHEET_PERSONAL);
+    if (sheetP && sheetP.getLastRow() > 1) {
+      const rows = sheetP.getRange(2, 1, sheetP.getLastRow() - 1, 7).getValues();
+      rows.forEach((r, i) => {
+        if (r[1]) results.push({ row: i + 2, sheet: SHEET_PERSONAL, timestamp: r[0], name: r[1], startDate: r[2], endDate: r[3], reason: r[4], leaveType: r[5], status: r[6] || 'รอดำเนินการ' });
+      });
+    }
+
+    // ลาป่วย: col A=timestamp,B=name,C=start,D=end,E=reason,F=hasCert,G=type,H=file,I=status
+    const sheetS = ss.getSheetByName(SHEET_SICK);
+    if (sheetS && sheetS.getLastRow() > 1) {
+      const rows = sheetS.getRange(2, 1, sheetS.getLastRow() - 1, 9).getValues();
+      rows.forEach((r, i) => {
+        if (r[1]) results.push({ row: i + 2, sheet: SHEET_SICK, timestamp: r[0], name: r[1], startDate: r[2], endDate: r[3], reason: r[4], hasCert: r[5], leaveType: r[6], status: r[8] || 'รอดำเนินการ' });
+      });
+    }
+
+    // เรียงตาม timestamp ใหม่ก่อน
+    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return buildResponse(JSON.stringify({ status: 'ok', requests: results }));
+  }
+
+  // อัปเดตสถานะ (สำหรับ HR)
+  if (e.parameter && e.parameter.action === 'updateLeaveStatus') {
+    const sheetName = e.parameter.sheet;
+    const row       = parseInt(e.parameter.row);
+    const newStatus = e.parameter.status; // อนุมัติ / ไม่อนุมัติ
+    const ss        = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet     = ss.getSheetByName(sheetName);
+    if (!sheet) return buildResponse(JSON.stringify({ status: 'error', message: 'Sheet not found' }));
+    // ลากิจ status อยู่คอลัมน์ 7, ลาป่วย status อยู่คอลัมน์ 9
+    const statusCol = sheetName === SHEET_SICK ? 9 : 7;
+    sheet.getRange(row, statusCol).setValue(newStatus);
+    return buildResponse(JSON.stringify({ status: 'ok' }));
+  }
+
+  // ดึงสถานะของพนักงานคนนั้น
+  if (e.parameter && e.parameter.action === 'getMyLeaveStatus') {
+    const name = (e.parameter.name || '').trim();
+    const ss   = SpreadsheetApp.getActiveSpreadsheet();
+    const results = [];
+
+    const sheetP = ss.getSheetByName(SHEET_PERSONAL);
+    if (sheetP && sheetP.getLastRow() > 1) {
+      const rows = sheetP.getRange(2, 1, sheetP.getLastRow() - 1, 7).getValues();
+      rows.forEach((r, i) => {
+        if (r[1] === name) results.push({ timestamp: r[0], name: r[1], startDate: r[2], endDate: r[3], reason: r[4], leaveType: r[5], status: r[6] || 'รอดำเนินการ' });
+      });
+    }
+
+    const sheetS = ss.getSheetByName(SHEET_SICK);
+    if (sheetS && sheetS.getLastRow() > 1) {
+      const rows = sheetS.getRange(2, 1, sheetS.getLastRow() - 1, 9).getValues();
+      rows.forEach((r, i) => {
+        if (r[1] === name) results.push({ timestamp: r[0], name: r[1], startDate: r[2], endDate: r[3], reason: r[4], leaveType: r[6], status: r[8] || 'รอดำเนินการ' });
+      });
+    }
+
+    results.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    return buildResponse(JSON.stringify({ status: 'ok', requests: results }));
+  }
+
   // ดึง role ของ user
   if (e.parameter && e.parameter.action === 'getRole') {
     const email = (e.parameter.email || '').toLowerCase().trim();
@@ -26,6 +94,34 @@ function doGet(e) {
       return buildResponse(JSON.stringify({ status: 'ok', role }));
     }
     return buildResponse(JSON.stringify({ status: 'ok', role: 'employee' }));
+  }
+
+  // เพิ่มพนักงานใหม่
+  if (e.parameter && e.parameter.action === 'addEmployee') {
+    const name = (e.parameter.name || '').trim();
+    if (!name) return buildResponse(JSON.stringify({ status: 'error', message: 'name is required' }));
+    const ss    = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_EMP);
+    if (!sheet) return buildResponse(JSON.stringify({ status: 'error', message: 'Sheet not found' }));
+    // เช็คไม่ให้ซ้ำ
+    const rows  = sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 1), 1).getValues();
+    const names = rows.map(r => r[0]).filter(n => n !== '');
+    if (names.includes(name)) return buildResponse(JSON.stringify({ status: 'error', message: 'duplicate' }));
+    sheet.appendRow([name]);
+    return buildResponse(JSON.stringify({ status: 'ok' }));
+  }
+
+  // ลบพนักงาน
+  if (e.parameter && e.parameter.action === 'removeEmployee') {
+    const name = (e.parameter.name || '').trim();
+    const ss    = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_EMP);
+    if (!sheet) return buildResponse(JSON.stringify({ status: 'error', message: 'Sheet not found' }));
+    const data  = sheet.getDataRange().getValues();
+    for (let i = data.length - 1; i >= 1; i--) {
+      if (data[i][0] === name) { sheet.deleteRow(i + 1); break; }
+    }
+    return buildResponse(JSON.stringify({ status: 'ok' }));
   }
 
   // ดึงรายชื่อพนักงาน
@@ -108,6 +204,7 @@ function handleRequest(e) {
         params.hasCert   || 'ไม่มี',
         leaveType,
         '',  // placeholder สำหรับ fileUrl
+        'รอดำเนินการ', // สถานะ
       ]);
       // ใส่ HYPERLINK สูตรในคอลัมน์สุดท้าย (ถ้ามีไฟล์)
       if (fileUrl) {
@@ -123,6 +220,7 @@ function handleRequest(e) {
         params.endDate   || '',
         params.reason    || '',
         leaveType,
+        'รอดำเนินการ', // สถานะ
       ]);
     }
 

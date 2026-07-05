@@ -5,13 +5,13 @@ export const SHEET_CONFIG = {
       // ลากิจ: A=timestamp, B=ชื่อ, C=วันเริ่ม, D=วันสิ้นสุด, E=เหตุผล, F=ประเภท
       sheetName: 'ลากิจ',
       gid: '2100755242',
-      cols: { name: 1, empId: -1, startDate: 2, endDate: 3, leaveType: 5 },
+      cols: { name: 1, empId: -1, startDate: 2, endDate: 3, reason: 4, leaveType: 5, fileUrl: -1 },
     },
     {
-      // ลาป่วย: A=timestamp, B=ชื่อ, C=วันเริ่ม, D=วันสิ้นสุด, E=เหตุผล, F=ใบรับรอง, G=ประเภท
+      // ลาป่วย: A=timestamp, B=ชื่อ, C=วันเริ่ม, D=วันสิ้นสุด, E=เหตุผล, F=ใบรับรอง, G=ประเภท, H=รูป
       sheetName: 'ลาป่วย',
       gid: '481045318',
-      cols: { name: 1, empId: -1, startDate: 2, endDate: 3, leaveType: 6 },
+      cols: { name: 1, empId: -1, startDate: 2, endDate: 3, reason: 4, leaveType: 6, fileUrl: 7 },
     },
   ],
 };

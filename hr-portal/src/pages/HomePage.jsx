@@ -1,76 +1,82 @@
-export default function HomePage({ onNavigate, role }) {
-  const allMenus = [
+export default function HomePage({ onNavigate, role, user }) {
+  const menus = [
     {
       id: 'leave',
       icon: (
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2d6a4f" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <path d="M16 2v4M8 2v4M3 10h18"/>
-          <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
+          <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>
         </svg>
       ),
-      title: 'ลา',
-      desc: 'ยื่นคำขอลากิจ ลาป่วย และดูข้อมูลการลา',
-      items: role === 'hr' ? ['ลากิจ', 'ลาป่วย', 'ปฏิทินการลา'] : ['ลากิจ', 'ลาป่วย'],
-      color: 'hover:border-emerald-400',
-      badge: 'bg-emerald-50 text-emerald-700',
-      badgeLabel: 'ระบบการลา',
+      title: 'ระบบลา',
+      sub: role === 'hr' ? 'ลากิจ · ลาป่วย · ปฏิทิน' : 'ลากิจ · ลาป่วย',
+      gradient: 'from-emerald-500 to-teal-500',
+      show: true,
     },
     {
       id: 'expense',
       icon: (
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2d6a4f" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <rect x="2" y="5" width="20" height="14" rx="2"/>
-          <path d="M2 10h20"/>
-          <path d="M6 15h4M14 15h4"/>
+          <path d="M2 10h20M6 15h4M14 15h4"/>
         </svg>
       ),
-      title: 'เบิก',
-      desc: 'เบิกค่าใช้จ่าย ค่าเดินทาง และค่าใช้จ่ายต่างๆ',
-      items: ['เบิกค่าใช้จ่าย', 'ดูประวัติการเบิก'],
-      color: 'hover:border-blue-400',
-      badge: 'bg-blue-50 text-blue-700',
-      badgeLabel: 'ระบบเบิก',
+      title: 'ระบบเบิก',
+      sub: 'เบิกค่าใช้จ่าย · ดูประวัติ',
+      gradient: 'from-blue-500 to-indigo-500',
+      show: true,
     },
-  ];
+  ].filter(m => m.show);
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-14">
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50">
       {/* Hero */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block"/>
-          Carbon Edge Employee Portal
+      <div className="bg-gradient-to-br from-[#0a1f14] via-[#1a3d2b] to-[#0f3320] px-6 pt-8 pb-14">
+        <div className="max-w-2xl mx-auto">
+          <p className="text-emerald-400/70 text-xs font-medium tracking-widest uppercase mb-2">Carbon Edge Portal</p>
+          <h1 className="text-2xl font-bold text-white leading-tight">
+            สวัสดีคุณ <span className="text-emerald-300">{user?.name?.split(' ')[0]}</span>
+          </h1>
+          <p className="text-white/30 text-sm mt-1">เลือกระบบที่ต้องการใช้งาน</p>
         </div>
-        <h1 className="text-3xl font-bold text-[#1a3d2b] tracking-tight mb-2">ยินดีต้อนรับ</h1>
-        <p className="text-gray-400 text-sm">เลือกระบบที่ต้องการใช้งาน</p>
       </div>
 
-      {/* Main cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        {allMenus.map(m => (
-          <button key={m.id} onClick={() => onNavigate(m.id)}
-            className={`bg-white rounded-2xl p-8 text-left border-2 border-gray-100 shadow-sm
-              ${m.color} hover:-translate-y-1 hover:shadow-xl transition-all duration-200 cursor-pointer group`}>
-            <div className="flex items-start justify-between mb-5">
-              <div className="p-3 bg-emerald-50 rounded-xl">{m.icon}</div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${m.badge}`}>{m.badgeLabel}</span>
-            </div>
-            <h2 className="text-xl font-bold text-[#1a3d2b] mb-1.5">{m.title}</h2>
-            <p className="text-gray-400 text-sm leading-relaxed mb-5">{m.desc}</p>
-            <div className="flex flex-wrap gap-2">
-              {m.items.map(item => (
-                <span key={item} className="text-xs text-gray-500 bg-gray-50 border border-gray-100 px-2.5 py-1 rounded-lg">{item}</span>
-              ))}
-            </div>
-            <div className="mt-5 flex items-center gap-1 text-xs font-semibold text-[#2d6a4f] group-hover:gap-2 transition-all">
-              เข้าใช้งาน
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </div>
-          </button>
-        ))}
+      {/* Cards — float up over banner */}
+      <div className="max-w-2xl mx-auto px-6 -mt-8">
+        {/* Info strip */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-800 truncate">{user?.name}</p>
+            <p className="text-[11px] text-gray-400 truncate">{user?.email} · {role === 'hr' ? 'Human Resources' : 'พนักงาน'}</p>
+          </div>
+          <div className="ml-auto shrink-0">
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          {menus.map(m => (
+            <button key={m.id} onClick={() => onNavigate(m.id)}
+              className="group bg-white rounded-2xl p-5 text-left shadow-md border border-gray-100/80 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 cursor-pointer overflow-hidden relative">
+              {/* gradient top bar */}
+              <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${m.gradient}`}/>
+              {/* icon */}
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${m.gradient} flex items-center justify-center text-white mb-4 shadow-sm`}>
+                {m.icon}
+              </div>
+              <h2 className="text-sm font-bold text-gray-800 mb-0.5">{m.title}</h2>
+              <p className="text-[11px] text-gray-400 mb-4">{m.sub}</p>
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 group-hover:gap-2 transition-all">
+                เข้าใช้งาน
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
